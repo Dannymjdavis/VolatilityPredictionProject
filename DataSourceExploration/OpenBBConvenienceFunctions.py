@@ -21,6 +21,48 @@ def get_commands_by_heading(heading: str) -> dict:
     prefix = f".{heading}."
     return {k: v for k, v in obb.coverage.commands.items() if k.startswith(prefix)}
 
+# INPUTS REQUIRED FOR A COMMAND
+def explore_query_inputs(command: str, provider: str) -> dict :
+    '''
+    Returns the required parameters for an openbb command.
+
+    --------------
+    Parameters:
+        command: str
+            Query to check inputs. Can be obtain from function get_commands_by_heading
+
+        provider: str
+            The provider to query
+    
+    --------------
+    Example:
+        explore_query_inputs(command: '.derivatives.options.chains', provider: 'cboe')
+    '''
+    params = obb.coverage.command_model[command][provider]['QueryParams']['fields']
+
+    return params
+
+# OUTPUTS PRODUCED FROM A COMMAND
+def explore_query_outputs(command: str, provider: str) -> dict :
+    '''
+    Returns output features of an openbb command.
+
+    --------------
+    Parameters:
+        command: str
+            Query to check. Can be obtain from function get_commands_by_heading
+
+        provider: str
+            The provider to query
+    
+    --------------
+    Example:
+        explore_query_outputs(command: '.derivatives.options.chains', provider: 'cboe')
+    '''
+    params = obb.coverage.command_model[command][provider]['Data']['fields']
+
+    return params
+
 # AVAILABLE INDICES FROM PROVIDER
 def check_available_indices(provider: str) -> pd.DataFrame:
     """
