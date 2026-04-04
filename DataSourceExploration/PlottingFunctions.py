@@ -380,6 +380,76 @@ def plot_scatter(
 
 
 # ─────────────────────────────────────────────
+# FUTURES CURVE WITH POLYNOMIAL FITS
+# ─────────────────────────────────────────────
+
+def plot_futures_curve(
+    prices: Union[pd.Series, np.ndarray, list],
+    dte: Union[pd.Index, np.ndarray, list],
+    n: int = 3,
+    title: str = "",
+    xlabel: str = "Days to Expiration",
+    ylabel: str = "Price",
+    figsize: tuple[float, float] = (11, 4),
+    smooth_points: int = 300,
+    dark: bool = True,
+    markers: bool = True,
+) -> tuple[plt.Figure, plt.Axes]:
+    """
+    Plot a futures curve snapshot with polynomial fits of degrees 0 through n.
+
+    The raw curve is drawn as a solid line; each polynomial fit is dashed.
+
+    Parameters
+    ----------
+    prices       : Raw price values
+    dte          : Days-to-expiration values (used as x-axis)
+    n            : Maximum polynomial degree; plots degrees 0, 1, ..., n
+    title        : Chart title
+    xlabel       : x-axis label
+    ylabel       : y-axis label
+    figsize      : (width, height) in inches
+    smooth_points: Number of points used to render each smooth fit curve
+    dark         : Dark background theme
+    markers      : Show data-point markers on the raw curve
+    """
+    prices = np.asarray(prices, dtype=float)
+    x = np.asarray(dte, dtype=float)
+    x_smooth = np.linspace(x.min(), x.max(), smooth_points)
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    # Raw curve — solid, primary teal
+    raw_color = color_primary["Teal Blue"][0]
+    ax.plot(x, prices, label="Raw", color=raw_color, linewidth=2.0,
+            linestyle="-", marker="o" if markers else None, markersize=5, zorder=3)
+
+    # Polynomial fits — dashed, cycling through the teal palette (skip index 0 to
+    # avoid reusing the raw colour at the start of the sequence)
+    fit_colors = TEAL_SEQUENCE[1:] + TEAL_SEQUENCE[:1]  # shift so first fit ≠ raw
+    degree_labels = {0: "Constant", 1: "Linear", 2: "Quadratic",
+                     3: "Cubic", 4: "Quartic", 5: "Quintic"}
+
+    for deg in range(n + 1):
+        coeffs = np.polyfit(x, prices, deg)
+        y_fit = np.polyval(coeffs, x_smooth)
+        label = f"Deg {deg} ({degree_labels.get(deg, f'Poly-{deg}')})"
+        color = fit_colors[deg % len(fit_colors)]
+        ax.plot(x_smooth, y_fit, label=label, color=color,
+                linewidth=1.6, linestyle="--", alpha=0.85)
+
+    ax.set_title(title, fontsize=14, fontweight="bold", pad=12)
+    ax.set_xlabel(xlabel, fontsize=11)
+    ax.set_ylabel(ylabel, fontsize=11)
+
+    if dark:
+        _apply_dark_theme(ax, fig)
+    _add_legend(ax, dark)
+    plt.tight_layout()
+    return fig, ax
+
+
+# ─────────────────────────────────────────────
 # MULTI-PANEL / SUBPLOT GRID
 # ─────────────────────────────────────────────
 
