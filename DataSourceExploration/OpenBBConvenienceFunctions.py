@@ -130,3 +130,28 @@ def append_returns(df: pd.DataFrame, price_column: str, drop_first=True) -> pd.D
         return df.iloc[1:]
     else:
         return df
+
+# DOWNLOAD FUTURES CURVE DATA
+def get_futures_curve_data(dates: list, symbol='VX_EOD', provider='cboe') -> pd.DataFrame :
+    '''Downloads futures prices across different expiry dates.
+    
+    Parameters
+    --------------------------
+        symbol: str
+        provider: str
+        dates: list containing str
+            Format 'YYYY-MM-DD'
+    '''
+    df = obb.derivatives.futures.curve(symbol, provider=provider, date=dates)
+    df = df.to_df()
+
+    df.index = pd.to_datetime(df.index)
+    df['expiration'] = pd.to_datetime(df['expiration'])
+
+    df.sort_values(['date', 'expiration', 'symbol'], inplace=True)
+    df['DTE'] = df['expiration'] - df.index
+
+    df['DTE'] = df['DTE'].dt.days
+    df = df[df['DTE']>0]
+
+    return df
