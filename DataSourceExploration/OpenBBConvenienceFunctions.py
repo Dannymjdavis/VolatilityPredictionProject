@@ -1,6 +1,32 @@
 import numpy as np
 import pandas as pd
 from openbb import obb
+import os
+
+# READ FILE
+def read_file(file_path, file_name, kind='parquet') -> pd.DataFrame :
+    '''
+    Opens local file
+
+    Parameters
+    ----------
+    file_path: str
+        Raw string of local folder to locate file.
+    file_name: str
+        Name of the file.
+    kind: str
+        Choose between parquet, csv, excel
+    '''
+    joint_path = os.path.join(file_path, file_name)
+
+    if kind=='csv':
+        df = pd.read_csv(joint_path)
+    elif kind=='excel':
+        df = pd.read_excel(joint_path)
+    else:
+        df = pd.read_parquet(joint_path)
+    
+    return df
 
 # AVAILABLE COMMANDS FOR A GIVEN HEADING
 def get_commands_by_heading(heading: str) -> dict:
@@ -130,6 +156,31 @@ def append_returns(df: pd.DataFrame, price_column: str, drop_first=True) -> pd.D
         return df.iloc[1:]
     else:
         return df
+
+# APPEND FWD VOL
+def append_fwd_vol(df: pd.DataFrame, returns_column: str, rolling_period: 20, fwd_vol_col_name="forward_vol_1m") -> pd.DataFrame :
+    '''
+    Appends 1-month forward volatility (annualised)
+
+    Parameters
+    --------------
+    df: DataFrame
+        DataFrame to append fwd vol column.
+
+    returns_column: str
+        Label of the column to compute standard deviation
+    
+    rolling_period: int
+        Default 20 days (approx. 1 month)
+
+    fwd_vol_col_name: str
+        New column name for fwd vol
+    '''
+    rolling_period_plus_1 = rolling_period+1
+
+    df[fwd_vol_col_name] = df[returns_column].shift(-1).rolling(rolling_period_plus_1).std().shift(-rolling_period) * np.sqrt(252)
+
+    return df
 
 # DOWNLOAD FUTURES CURVE DATA
 def get_futures_curve_data(dates: list, symbol='VX_EOD', provider='cboe') -> pd.DataFrame :
