@@ -12,3 +12,7 @@ __pycache__/
 # Environment files
 .env
 *.env
+DataSourceExploration/__pycache__/PlottingFunctions.cpython-311.pyc
+DataSourceExploration/__pycache__/OpenBBConvenienceFunctions.cpython-311.pyc
+.claude/settings.local.json
+.vscode/settings.json
