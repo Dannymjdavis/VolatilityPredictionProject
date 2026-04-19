@@ -33,6 +33,8 @@ color_accents = {
     "Soft":        ["#4DD0E1", (77, 208, 225)],  # light accent — backgrounds, tags
 }
 
+default_figsize = (11,4)
+
 # Ordered list for cycling through the teal palette
 TEAL_SEQUENCE = [v[0] for v in color_palette_teal_blue.values()]
 
@@ -81,36 +83,21 @@ def plot_line(
     title: str = "",
     xlabel: str = "",
     ylabel: str = "",
-    figsize: tuple[float, float] = (12, 5),
+    figsize: tuple[float, float] = default_figsize,
     colors: Optional[list[str]] = None,
     linewidth: float = 1.8,
     alpha: float = 1.0,
     markers: bool = False,
-    dark: bool = True,
+    dark: bool = False,
     percent_y: bool = False,
     y_format: Optional[str] = None,
+    ax: Optional[plt.Axes] = None,
 ) -> tuple[plt.Figure, plt.Axes]:
-    """
-    Reusable line chart.
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
 
-    Parameters
-    ----------
-    data      : DataFrame or dict of {label: series/array}
-    x         : Column name for x-axis (uses index if None)
-    y         : Column name(s) to plot — ignored when data is a dict
-    title     : Chart title
-    xlabel    : x-axis label
-    ylabel    : y-axis label
-    figsize   : (width, height) in inches
-    colors    : List of hex colours; cycles through TEAL_SEQUENCE by default
-    linewidth : Line stroke width
-    alpha     : Line opacity
-    markers   : Show data-point markers
-    dark      : Dark background theme
-    percent_y : Format y-axis as percentages
-    y_format  : Python format string for y-axis tick labels, e.g. '{x:,.0f}'
-    """
-    fig, ax = plt.subplots(figsize=figsize)
     colors = colors or TEAL_SEQUENCE
     marker_style = "o" if markers else None
 
@@ -137,7 +124,8 @@ def plot_line(
     if dark:
         _apply_dark_theme(ax, fig)
     _add_legend(ax, dark)
-    plt.tight_layout()
+    if ax.get_figure() == plt.gcf():
+        plt.tight_layout()
     return fig, ax
 
 
@@ -151,25 +139,19 @@ def plot_histogram(
     title: str = "",
     xlabel: str = "",
     ylabel: str = "Frequency",
-    figsize: tuple[float, float] = (10, 5),
+    figsize: tuple[float, float] = default_figsize,
     colors: Optional[list[str]] = None,
     alpha: float = 0.75,
     kde: bool = True,
-    dark: bool = True,
+    dark: bool = False,
     density: bool = False,
+    ax: Optional[plt.Axes] = None,
 ) -> tuple[plt.Figure, plt.Axes]:
-    """
-    Reusable histogram, optionally with a KDE overlay.
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
 
-    Parameters
-    ----------
-    data    : Series/array for a single distribution, or dict of {label: series}
-              to overlay multiple distributions
-    bins    : Number of bins or bin strategy (e.g. 'auto', 'fd')
-    kde     : Overlay a kernel density estimate
-    density : Normalise the histogram to a probability density
-    """
-    fig, ax = plt.subplots(figsize=figsize)
     colors = colors or TEAL_SEQUENCE
 
     if isinstance(data, dict):
@@ -204,7 +186,8 @@ def plot_histogram(
     if dark:
         _apply_dark_theme(ax, fig)
     _add_legend(ax, dark)
-    plt.tight_layout()
+    if ax.get_figure() == plt.gcf():
+        plt.tight_layout()
     return fig, ax
 
 
@@ -219,33 +202,23 @@ def plot_bar(
     title: str = "",
     xlabel: str = "",
     ylabel: str = "",
-    figsize: tuple[float, float] = (10, 5),
+    figsize: tuple[float, float] = default_figsize,
     colors: Optional[list[str]] = None,
     alpha: float = 0.9,
     horizontal: bool = False,
     stacked: bool = False,
-    dark: bool = True,
+    dark: bool = False,
     bar_width: float = 0.8,
     value_labels: bool = False,
     y_format: Optional[str] = None,
     percent_y: bool = False,
+    ax: Optional[plt.Axes] = None,
 ) -> tuple[plt.Figure, plt.Axes]:
-    """
-    Reusable bar chart (vertical or horizontal, grouped or stacked).
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
 
-    Parameters
-    ----------
-    data         : Series, DataFrame, or dict of {category: value}
-    x            : Column for categories (uses index if None)
-    y            : Column(s) for values
-    horizontal   : Rotate to horizontal bars
-    stacked      : Stack multiple series
-    bar_width    : Relative bar width (0–1)
-    value_labels : Annotate each bar with its value
-    percent_y    : Format y-axis as percentages
-    y_format     : Python format string for axis tick labels, e.g. '{x:,.0f}'
-    """
-    fig, ax = plt.subplots(figsize=figsize)
     colors = colors or TEAL_SEQUENCE
 
     # Normalise input to a DataFrame
@@ -288,7 +261,8 @@ def plot_bar(
     if dark:
         _apply_dark_theme(ax, fig)
     _add_legend(ax, dark)
-    plt.tight_layout()
+    if ax.get_figure() == plt.gcf():
+        plt.tight_layout()
     return fig, ax
 
 
@@ -304,39 +278,21 @@ def plot_scatter(
     title: str = "",
     xlabel: str = "",
     ylabel: str = "",
-    figsize: tuple[float, float] = (10, 6),
+    figsize: tuple[float, float] = default_figsize,
     colors: Optional[list[str]] = None,
     alpha: float = 0.7,
     size: float = 30,
-    dark: bool = True,
+    dark: bool = False,
     trend_line: bool = False,
     percent_x: bool = False,
     percent_y: bool = False,
+    ax: Optional[plt.Axes] = None,
 ) -> tuple[plt.Figure, plt.Axes]:
-    """
-    Reusable scatter chart with optional hue grouping and trend line.
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
 
-    Parameters
-    ----------
-    data       : DataFrame containing the columns to plot
-    x          : Column name for the x-axis
-    y          : Column name for the y-axis
-    hue        : Column name to colour-code points by category; if None all
-                 points are drawn in the primary teal colour
-    title      : Chart title
-    xlabel     : x-axis label (defaults to the column name if empty)
-    ylabel     : y-axis label (defaults to the column name if empty)
-    figsize    : (width, height) in inches
-    colors     : List of hex colours for hue categories; cycles through
-                 TEAL_SEQUENCE by default
-    alpha      : Point opacity
-    size       : Marker size in points²
-    dark       : Dark background theme
-    trend_line : Overlay a linear regression line per group (or overall)
-    percent_x  : Format x-axis ticks as percentages
-    percent_y  : Format y-axis ticks as percentages
-    """
-    fig, ax = plt.subplots(figsize=figsize)
     colors = colors or TEAL_SEQUENCE
 
     if hue is not None:
@@ -375,7 +331,8 @@ def plot_scatter(
         _apply_dark_theme(ax, fig)
     if hue is not None or trend_line:
         _add_legend(ax, dark)
-    plt.tight_layout()
+    if ax.get_figure() == plt.gcf():
+        plt.tight_layout()
     return fig, ax
 
 
@@ -390,43 +347,26 @@ def plot_futures_curve(
     title: str = "",
     xlabel: str = "Days to Expiration",
     ylabel: str = "Price",
-    figsize: tuple[float, float] = (11, 4),
+    figsize: tuple[float, float] = default_figsize,
     smooth_points: int = 300,
-    dark: bool = True,
+    dark: bool = False,
     markers: bool = True,
+    ax: Optional[plt.Axes] = None,
 ) -> tuple[plt.Figure, plt.Axes]:
-    """
-    Plot a futures curve snapshot with polynomial fits of degrees 0 through n.
-
-    The raw curve is drawn as a solid line; each polynomial fit is dashed.
-
-    Parameters
-    ----------
-    prices       : Raw price values
-    dte          : Days-to-expiration values (used as x-axis)
-    n            : Maximum polynomial degree; plots degrees 0, 1, ..., n
-    title        : Chart title
-    xlabel       : x-axis label
-    ylabel       : y-axis label
-    figsize      : (width, height) in inches
-    smooth_points: Number of points used to render each smooth fit curve
-    dark         : Dark background theme
-    markers      : Show data-point markers on the raw curve
-    """
     prices = np.asarray(prices, dtype=float)
     x = np.asarray(dte, dtype=float)
     x_smooth = np.linspace(x.min(), x.max(), smooth_points)
 
-    fig, ax = plt.subplots(figsize=figsize)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
 
-    # Raw curve — solid, primary teal
     raw_color = color_primary["Teal Blue"][0]
     ax.plot(x, prices, label="Raw", color=raw_color, linewidth=2.0,
             linestyle="-", marker="o" if markers else None, markersize=5, zorder=3)
 
-    # Polynomial fits — dashed, cycling through the teal palette (skip index 0 to
-    # avoid reusing the raw colour at the start of the sequence)
-    fit_colors = TEAL_SEQUENCE[1:] + TEAL_SEQUENCE[:1]  # shift so first fit ≠ raw
+    fit_colors = TEAL_SEQUENCE[1:] + TEAL_SEQUENCE[:1]
     degree_labels = {0: "Constant", 1: "Linear", 2: "Quadratic",
                      3: "Cubic", 4: "Quartic", 5: "Quintic"}
 
@@ -445,7 +385,8 @@ def plot_futures_curve(
     if dark:
         _apply_dark_theme(ax, fig)
     _add_legend(ax, dark)
-    plt.tight_layout()
+    if ax.get_figure() == plt.gcf():
+        plt.tight_layout()
     return fig, ax
 
 
@@ -458,13 +399,13 @@ def plot_subplots(
     ncols: int = 2,
     figsize: Optional[tuple[float, float]] = None,
     suptitle: str = "",
-    dark: bool = True,
+    dark: bool = False,
 ) -> tuple[plt.Figure, np.ndarray]:
     """
     Create a grid of subplots from a list of plot configurations.
 
-    Each config dict supports keys: type ('line'|'bar'|'hist'), data, title,
-    xlabel, ylabel, and all kwargs accepted by the matching plot_* function
+    Each config dict supports keys: type ('line'|'bar'|'hist'|'scatter'), data,
+    title, xlabel, ylabel, and all kwargs accepted by the matching plot_* function
     (minus figsize/dark which are set globally here).
 
     Parameters
@@ -484,28 +425,14 @@ def plot_subplots(
 
     dispatchers = {"line": plot_line, "bar": plot_bar, "hist": plot_histogram, "scatter": plot_scatter}
 
-    for i, (cfg, ax) in enumerate(zip(plot_configs, flat_axes)):
+    for cfg, ax in zip(plot_configs, flat_axes):
         cfg = cfg.copy()
         plot_type = cfg.pop("type", "line")
+        cfg.pop("figsize", None)
         cfg["dark"] = dark
+        cfg["ax"] = ax
+        dispatchers[plot_type](**cfg)
 
-        tmp_fig, tmp_ax = dispatchers[plot_type](**cfg)
-        # Transfer artists from tmp_ax into the grid axis
-        for line in tmp_ax.get_lines():
-            ax.add_line(line)
-        for patch in tmp_ax.patches:
-            ax.add_patch(patch)
-        ax.set_xlim(tmp_ax.get_xlim())
-        ax.set_ylim(tmp_ax.get_ylim())
-        ax.set_title(tmp_ax.get_title(), fontsize=12, fontweight="bold")
-        ax.set_xlabel(tmp_ax.get_xlabel(), fontsize=10)
-        ax.set_ylabel(tmp_ax.get_ylabel(), fontsize=10)
-        plt.close(tmp_fig)
-
-        if dark:
-            _apply_dark_theme(ax, fig)
-
-    # Hide unused panels
     for ax in flat_axes[n:]:
         ax.set_visible(False)
 
