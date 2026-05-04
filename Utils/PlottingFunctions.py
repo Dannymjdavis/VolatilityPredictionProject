@@ -414,6 +414,28 @@ def plot_subplots(
     ncols        : Number of columns in the grid
     figsize      : Overall figure size; auto-calculated if None
     suptitle     : Figure-level title
+
+    Example
+    -------
+    >>> import numpy as np
+    >>> x = np.linspace(0, 10, 100)
+    >>> configs = [
+    ...     {
+    ...         "type": "scatter",
+    ...         "data": {"x": x, "y": np.random.randn(100)},
+    ...         "title": "Random Scatter",
+    ...         "xlabel": "x",
+    ...         "ylabel": "y",
+    ...     },
+    ...     {
+    ...         "type": "line",
+    ...         "data": {"x": x, "y": np.sin(x)},
+    ...         "title": "Sine Wave",
+    ...         "xlabel": "x",
+    ...         "ylabel": "sin(x)",
+    ...     },
+    ... ]
+    >>> fig, axes = plot_subplots(configs, ncols=2, suptitle="Example Grid")
     """
     n = len(plot_configs)
     nrows = (n + ncols - 1) // ncols
@@ -444,3 +466,17 @@ def plot_subplots(
 
     plt.tight_layout()
     return fig, axes
+
+
+# ─────────────────────────────────────────────
+# BARE AXES
+# ─────────────────────────────────────────────
+
+def create_ax(
+    figsize: tuple[float, float] = default_figsize,
+    dark: bool = False,
+) -> tuple[plt.Figure, plt.Axes]:
+    fig, ax = plt.subplots(figsize=figsize)
+    if dark:
+        _apply_dark_theme(ax, fig)
+    return fig, ax

@@ -1,5 +1,8 @@
-# API Keys - never commit credentials
+# API Keys 
 **/API_Keys.py
+
+# File Paths
+**/File_Paths.py
 
 # Python cache
 __pycache__/
@@ -19,7 +22,6 @@ DataSourceExploration/__pycache__/OpenBBConvenienceFunctions.cpython-311.pyc
 DataSourceExploration/generate_cot_reference.py
 DataSourceExploration/__pycache__/PlottingFunctions.cpython-311.pyc
 DataSourceExploration/__pycache__/OpenBBConvenienceFunctions.cpython-311.pyc
-DataSourceExploration/File_Paths.py
 DataSourceExploration/OpenBB_Exploration.ipynb
 DataSourceExploration/__pycache__/OpenBBConvenienceFunctions.cpython-311.pyc
 DataSourceExploration/__pycache__/PlottingFunctions.cpython-311.pyc
