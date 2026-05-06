@@ -312,8 +312,9 @@ def plot_scatter(
         ax.scatter(data[x], data[y], color=colors[0], alpha=alpha,
                    s=size, edgecolors="none")
         if trend_line:
-            coeffs = np.polyfit(data[x].astype(float), data[y].astype(float), 1)
-            x_range = np.linspace(data[x].min(), data[x].max(), 200)
+            valid = data[[x, y]].dropna()
+            coeffs = np.polyfit(valid[x].astype(float), valid[y].astype(float), 1)
+            x_range = np.linspace(valid[x].min(), valid[x].max(), 200)
             ax.plot(x_range, np.polyval(coeffs, x_range),
                     color=color_accents["Highlight"][0],
                     linewidth=1.8, linestyle="--", label="Trend")
