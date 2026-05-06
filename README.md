@@ -15,14 +15,14 @@ Copy
  
 **VolatilityPredictionProject** aims to build a robust volatility forecasting pipeline for equity markets using only freely available data and open-source tools. The goal is to make professional-grade volatility modelling accessible to anyone — no Bloomberg terminal required.
  
-The project currently focuses on **GARCH/EGARCH** modelling, with plans to expand into additional approaches over time.
+The project currently focuses on **ARCH/GARCH** modelling, with plans to expand into additional approaches over time.
  
 ---
  
 ## Features
  
-- 📊 **GARCH / EGARCH modelling** — classical volatility forecasting with asymmetric effects
-- 🆓 **100% free data sources** — powered by open APIs (e.g. Yahoo Finance via `yfinance`)
+- 📊 **ARCH/GARCH modelling** — classical volatility forecasting with asymmetric effects
+- 🆓 **100% free data sources** — powered by [OpenBB](https://openbb.co/), an open-source financial data platform
 - 🐍 **Open-source stack** — built entirely on Python and freely available libraries
 - 🔬 **Research-friendly** — clean, readable code designed for experimentation and extension
  
@@ -49,16 +49,6 @@ cd VolatilityPredictionProject
 pip install -r requirements.txt
 ```
  
-### Quick Start
- 
-```python
-# Example usage (update as the project develops)
-from models.garch import fit_garch
- 
-forecast = fit_garch(ticker="AAPL", horizon=10)
-print(forecast)
-```
- 
 ---
  
 ## Data Sources
@@ -67,7 +57,7 @@ All data is sourced freely and requires no API keys or subscriptions:
  
 | Source | Library | Usage |
 |--------|---------|-------|
-| Yahoo Finance | `yfinance` | Historical equity prices |
+| OpenBB | `openbb` | Historical equity prices, fundamentals, and more |
  
 ---
  
@@ -76,16 +66,13 @@ All data is sourced freely and requires no API keys or subscriptions:
 | Model | Status | Description |
 |-------|--------|-------------|
 | GARCH(1,1) | 🔄 In Progress | Standard generalised autoregressive conditional heteroskedasticity |
-| EGARCH | 🔄 In Progress | Asymmetric extension capturing leverage effects |
-| HAR-RV | 🔜 Planned | Heterogeneous autoregressive model using realised volatility |
 | ML-based | 🔜 Planned | Machine learning approaches (e.g. LSTM, XGBoost) |
  
 ---
  
 ## Tech Stack
  
-- [`yfinance`](https://github.com/ranaroussi/yfinance) — free market data
-- [`arch`](https://github.com/bashtage/arch) — GARCH/EGARCH modelling
+- [`openbb`](https://github.com/OpenBB-finance/OpenBB) — open-source financial data platform (primary data source)
 - [`pandas`](https://pandas.pydata.org/) / [`numpy`](https://numpy.org/) — data manipulation
 - [`matplotlib`](https://matplotlib.org/) / [`seaborn`](https://seaborn.pydata.org/) — visualisation
  
@@ -94,9 +81,9 @@ All data is sourced freely and requires no API keys or subscriptions:
 ## Roadmap
  
 - [x] Project setup
-- [ ] Data ingestion pipeline
+- [x] Data ingestion pipeline
+- [ ] Model diagnostics
 - [ ] GARCH(1,1) implementation
-- [ ] EGARCH implementation
 - [ ] Model evaluation & backtesting
 - [ ] Additional models (HAR, ML-based)
 - [ ] Interactive notebooks / examples
@@ -123,4 +110,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
  
 ## Disclaimer
  
-This project is for **educational and research purposes only**. Nothing here constitutes financial advice.
+This project is for **educational and research purposes only**. Nothing here constitutes financial advice. 
+
+Nothing in this project reflects the research, data, or views of BNP Paribas, BNP Paribas Asset Management, or AXA Investment Managers.
+
