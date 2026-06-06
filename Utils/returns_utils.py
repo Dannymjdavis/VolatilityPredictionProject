@@ -28,7 +28,7 @@ def append_returns(df: pd.DataFrame, price_column: str, drop_first=True) -> pd.D
         return df
 
 # APPEND FWD VOL
-def append_fwd_vol(df: pd.DataFrame, returns_column: str, rolling_period: 20, fwd_vol_col_name="forward_vol_1m") -> pd.DataFrame :
+def append_fwd_vol(df: pd.DataFrame, returns_column: str, rolling_period: int = 20, fwd_vol_col_name="forward_vol_1m") -> pd.DataFrame :
     '''
     Appends 1-month forward volatility (annualised)
 
