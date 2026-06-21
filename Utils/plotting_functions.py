@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import seaborn as sns
-import plotly.express as px
 import pandas as pd
 import numpy as np
 from typing import Optional, Union
@@ -338,6 +337,82 @@ def plot_scatter(
 
 
 # ─────────────────────────────────────────────
+# HEATMAP
+# ─────────────────────────────────────────────
+
+def plot_heatmap(
+    data: Union[pd.DataFrame, np.ndarray],
+    title: str = "",
+    xlabel: str = "",
+    ylabel: str = "",
+    figsize: tuple[float, float] = default_figsize,
+    annot: bool = True,
+    fmt: str = ".2f",
+    cmap: Optional[str] = None,
+    triangle_mask: bool = False,
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
+    center: Optional[float] = None,
+    linewidths: float = 0.4,
+    dark: bool = False,
+    arch_col_split: bool = False,
+    ax: Optional[plt.Axes] = None,
+) -> tuple[plt.Figure, plt.Axes]:
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = ax.get_figure()
+
+    cmap = cmap or "coolwarm"
+    mask = np.triu(np.ones_like(data, dtype=bool)) if triangle_mask else None
+    line_color = "#1F2937" if dark else "white"
+
+    sns.heatmap(
+        data,
+        ax=ax,
+        annot=annot,
+        fmt=fmt,
+        cmap=cmap,
+        mask=mask,
+        vmin=vmin,
+        vmax=vmax,
+        center=center,
+        linewidths=linewidths,
+        linecolor=line_color,
+    )
+
+    # arch_col_split needs extra title padding so section labels don't overlap
+    title_pad = 38 if arch_col_split else 12
+    ax.set_title(title, fontsize=14, fontweight="bold", pad=title_pad)
+    ax.set_xlabel(xlabel, fontsize=11)
+    ax.set_ylabel(ylabel, fontsize=11)
+
+    if arch_col_split:
+        ncols = data.shape[1] if hasattr(data, "shape") else len(data.columns)
+        text_color = "#E5E7EB" if dark else "#003D4C"
+        separator_color = "#00BCD4" if dark else "#006175"
+        # vertical separator between column 0 (ARCH) and column 1+ (GARCH)
+        ax.axvline(x=1, color=separator_color, linewidth=2.5, linestyle="--")
+        # section labels sit just above the axes, clear of the title
+        ax.text(0.5 / ncols, 1.012, "ARCH", transform=ax.transAxes,
+                ha="center", va="bottom", fontsize=10, fontweight="bold", color=separator_color)
+        ax.text((1 + (ncols - 1) / 2) / ncols, 1.012, "GARCH", transform=ax.transAxes,
+                ha="center", va="bottom", fontsize=10, fontweight="bold", color=text_color)
+
+    if dark:
+        _apply_dark_theme(ax, fig)
+        cbar = ax.collections[0].colorbar
+        if cbar is not None:
+            cbar.ax.tick_params(colors="#E5E7EB")
+            cbar.ax.set_facecolor("#0D1117")
+            cbar.ax.yaxis.label.set_color("#E5E7EB")
+
+    if ax.get_figure() == plt.gcf():
+        plt.tight_layout()
+    return fig, ax
+
+
+# ─────────────────────────────────────────────
 # FUTURES CURVE WITH POLYNOMIAL FITS
 # ─────────────────────────────────────────────
 
@@ -446,7 +521,7 @@ def plot_subplots(
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, squeeze=False)
     flat_axes = axes.flatten()
 
-    dispatchers = {"line": plot_line, "bar": plot_bar, "hist": plot_histogram, "scatter": plot_scatter}
+    dispatchers = {"line": plot_line, "bar": plot_bar, "hist": plot_histogram, "scatter": plot_scatter, "heatmap": plot_heatmap}
 
     for cfg, ax in zip(plot_configs, flat_axes):
         cfg = cfg.copy()
