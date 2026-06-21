@@ -1,1 +1,2 @@
 raw_data_filepath = r"C:\Users\dannydavis\OneDrive\VolatilityModellingProject\RawData"
+candidate_model_filepath = r"C:\Users\dannydavis\OneDrive\VolatilityModellingProject\candidate_model_results"
