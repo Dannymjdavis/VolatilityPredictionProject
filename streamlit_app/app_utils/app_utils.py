@@ -1,4 +1,11 @@
 """Volatility app utilities."""
+import os
+
+# Must be set before `openbb` is imported - stops it from trying to rewrite its
+# own installed package files on startup, which fails on read-only deployments
+# like Streamlit Community Cloud.
+os.environ["OPENBB_AUTO_BUILD"] = "False"
+
 from app_utils import app_data
 import pandas as pd
 from openbb import obb
