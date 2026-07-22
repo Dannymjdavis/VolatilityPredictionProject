@@ -1,9 +1,6 @@
 """Volatility app utilities."""
 import os
 
-# Must be set before `openbb` is imported - stops it from trying to rewrite its
-# own installed package files on startup, which fails on read-only deployments
-# like Streamlit Community Cloud.
 os.environ["OPENBB_AUTO_BUILD"] = "False"
 
 from app_utils import app_data
@@ -17,7 +14,7 @@ cot_contract_selection_list = list(cot_contract_dict.keys())
 def import_cot_data(contract_name: str, start_date: str = '2010-01-01', end_date: str = '2025-12-31', all_columns: bool = False):
     """Committment of Traders report data between two dates."""
     contract_code = cot_contract_dict[contract_name]
-    cot_raw = obb.regulators.cftc.cot(contract_code, provider='cftc', start_date=start_date, end_date=end_date)
+    cot_raw = obb.regulators.cftc.cot(contract_code, provider='cftc', start_date=start_date, end_date=end_date) # type: ignore
     cot_df = cot_raw.to_df()
     cot_df.index = pd.to_datetime(cot_df.index)
     if all_columns:
@@ -83,9 +80,3 @@ def cot_mkt_concentration(cot_df: pd.DataFrame):
                                 'conc_net_le_8_tdr_short_all':'TOP_8_SHORT_CONCENTRATION'},
                                 inplace=True)
     return cot_df_copy
-
-def _nearest_report_date(cot_df: pd.DataFrame, date: str):
-    """COT reports are weekly, so snap any date to the closest available report date."""
-    target = pd.to_datetime(date)
-    idx = cot_df.index.get_indexer([target], method='ffill')[0]
-    return cot_df.index[idx]
