@@ -1,0 +1,8 @@
+[theme]
+# Light teal-blue theme, monospace font to match the project's plotting palette
+base = "light"
+primaryColor = "#00ACC1"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#E0F4F6"
+textColor = "#003D4C"
+font = "monospace"
