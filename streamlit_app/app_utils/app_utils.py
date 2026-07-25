@@ -1,14 +1,19 @@
 """Volatility app utilities."""
-# NOTE: OPENBB_AUTO_BUILD must stay at its default (True). OpenBB only rewrites
-# its generated `package/` files when the extension versions it finds at import
-# time don't match what it was built with - if that mismatch never happens
-# (see pinned openbb-* versions in requirements.txt), no write is attempted and
-# nothing needs the read-only site-packages dir on Streamlit Cloud. Forcing it
-# to False instead skips loading the extensions entirely, so `obb` ends up with
-# none of its attributes (equity, regulators, etc.) attached at all.
+# NOTE: `from openbb import obb` is deliberately avoided here. Importing the
+# `openbb` meta-package triggers its PackageBuilder, which regenerates the
+# `openbb.package.*` fluent-API modules on disk whenever it detects any
+# extension version drift - and it always does on a fresh install, since the
+# wheel only ships `package/__init__.py`. That write needs site-packages to be
+# writable, which it isn't on Streamlit Cloud at runtime, so it crashes with
+# PermissionError. `openbb_core.app.command_runner.CommandRunner` runs the
+# same registered routes directly from the installed extensions' entry
+# points, without ever touching the generated static package, so it works
+# regardless of filesystem permissions.
 from app_utils import app_data
 import pandas as pd
-from openbb import obb
+from openbb_core.app.command_runner import CommandRunner
+
+_command_runner = CommandRunner()
 
 # COT contract inputs
 cot_contract_dict = app_data.cot_contract_dict()
@@ -17,7 +22,12 @@ cot_contract_selection_list = list(cot_contract_dict.keys())
 def import_cot_data(contract_name: str, start_date: str = '2010-01-01', end_date: str = '2025-12-31', all_columns: bool = False):
     """Committment of Traders report data between two dates."""
     contract_code = cot_contract_dict[contract_name]
-    cot_raw = obb.regulators.cftc.cot(contract_code, provider='cftc', start_date=start_date, end_date=end_date) # type: ignore
+    cot_raw = _command_runner.sync_run(
+        '/regulators/cftc/cot',
+        provider_choices={'provider': 'cftc'},
+        standard_params={'id': contract_code, 'start_date': start_date, 'end_date': end_date},
+        extra_params={},
+    )
     cot_df = cot_raw.to_df()
     cot_df.index = pd.to_datetime(cot_df.index)
     if all_columns:
