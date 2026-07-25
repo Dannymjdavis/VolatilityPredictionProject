@@ -1,8 +1,11 @@
 """Volatility app utilities."""
-import os
-
-os.environ["OPENBB_AUTO_BUILD"] = "False"
-
+# NOTE: OPENBB_AUTO_BUILD must stay at its default (True). OpenBB only rewrites
+# its generated `package/` files when the extension versions it finds at import
+# time don't match what it was built with - if that mismatch never happens
+# (see pinned openbb-* versions in requirements.txt), no write is attempted and
+# nothing needs the read-only site-packages dir on Streamlit Cloud. Forcing it
+# to False instead skips loading the extensions entirely, so `obb` ends up with
+# none of its attributes (equity, regulators, etc.) attached at all.
 from app_utils import app_data
 import pandas as pd
 from openbb import obb
