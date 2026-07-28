@@ -1,5 +1,9 @@
 import pandas as pd
 from openbb import obb
+from openbb_core.app.command_runner import CommandRunner
+
+# COMMAND RUNNER
+_command_runner = CommandRunner()
 
 # AVAILABLE COMMANDS FOR A GIVEN HEADING
 def get_commands_by_heading(heading: str) -> dict:
@@ -130,3 +134,64 @@ def get_futures_curve_data(dates: list, symbol='VX_EOD', provider='cboe') -> pd.
     df = df[df['DTE']>0]
 
     return df
+
+# FULL QUERY-BUILDER MAP FOR A HEADING
+def describe_heading(heading: str) -> dict:
+    """
+    Every command, provider, and input parameter under a heading — enough
+    to render a dynamic form (name, type, default, choices, description).
+
+    Returns
+    -------
+    {command: {provider: {param_name: {..., 'scope': 'standard'|'extra'}}}}
+
+    'standard' params are shared across all providers for that command;
+    'extra' params are provider-specific and go in extra_params when
+    calling run_query().
+
+    Example
+    -------
+    >>> describe_heading('derivatives')['.derivatives.futures.curve']['cboe']
+    """
+    prefix = f".{heading}."
+    routes = {k: v for k, v in obb.coverage.commands.items() if k.startswith(prefix)}
+    out = {}
+    for command, providers in routes.items():
+        route = command.replace('.', '/')
+        node = obb.reference['paths'][route]
+        standard = node['parameters']['standard']
+        cmd_out = {}
+        for provider in providers:
+            merged = {p['name']: {**p, 'scope': 'standard'} for p in standard}
+            for p in node['parameters'].get(provider, []):
+                merged[p['name']] = {**p, 'scope': 'extra'}
+            cmd_out[provider] = merged
+        out[command] = cmd_out
+    return out
+
+# RUN A COMMAND VIA COMMANDRUNNER (bypasses the generated static package)
+def run_query(command: str, provider: str, **params) -> pd.DataFrame:
+    """
+    Execute any OpenBB command discovered via describe_heading(), splitting
+    the flat params dict into standard_params/extra_params automatically.
+
+    Example
+    -------
+    >>> run_query('.derivatives.futures.curve', 'cboe', symbol='VX_EOD', date='2024-01-05')
+    """
+    route = command.replace('.', '/')
+    node = obb.reference['paths'][route]
+    standard_names = {p['name'] for p in node['parameters']['standard']}
+    extra_names = {p['name'] for p in node['parameters'].get(provider, [])}
+
+    standard_params = {k: v for k, v in params.items() if k in standard_names}
+    extra_params = {k: v for k, v in params.items() if k in extra_names and k not in standard_names}
+
+    result = _command_runner.sync_run(
+        route,
+        provider_choices={'provider': provider},
+        standard_params=standard_params,
+        extra_params=extra_params,
+    )
+    return result.to_df()
+
