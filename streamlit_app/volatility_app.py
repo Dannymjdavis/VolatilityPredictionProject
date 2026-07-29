@@ -1,5 +1,6 @@
 import streamlit as st
 from app_utils import app_utils
+from app_utils.data_description import description_dict
 import pandas as pd
 import plotly.express as px
 
@@ -58,6 +59,12 @@ if st.session_state['data_sidebar_selection'] == 'COT Report':
 # TITLE CONTAINER
 with st.container(border=True, width='stretch', height='content'):
     st.subheader("EXOGENOUS VARIABLE EXPLORATION" if st.session_state['current_state']=='empty' else f"{st.session_state['data_sidebar_selection']}".upper())
+    st.write("Select Data to Begin" if st.session_state['current_state']=='empty' else description_dict[st.session_state['current_state']]['description'])
+
+    if st.session_state['current_state'] != 'empty':
+        column_badge_1, column_badge_2 = st.columns(2)
+        column_badge_1.badge(f"{description_dict[st.session_state['current_state']]['provider']}", icon="📋", color='primary')
+        column_badge_2.badge(f"{description_dict[st.session_state['current_state']]['frequency']}", icon="⏱️", color='primary')
 
 # SELECTION CONTAINER
 selection_container = st.columns(1 if st.session_state['current_state'] == 'empty' else 3,

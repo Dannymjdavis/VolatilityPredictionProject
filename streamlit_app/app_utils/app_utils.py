@@ -1,14 +1,4 @@
 """Volatility app utilities."""
-# NOTE: `from openbb import obb` is deliberately avoided here. Importing the
-# `openbb` meta-package triggers its PackageBuilder, which regenerates the
-# `openbb.package.*` fluent-API modules on disk whenever it detects any
-# extension version drift - and it always does on a fresh install, since the
-# wheel only ships `package/__init__.py`. That write needs site-packages to be
-# writable, which it isn't on Streamlit Cloud at runtime, so it crashes with
-# PermissionError. `openbb_core.app.command_runner.CommandRunner` runs the
-# same registered routes directly from the installed extensions' entry
-# points, without ever touching the generated static package, so it works
-# regardless of filesystem permissions.
 from app_utils import app_data
 import pandas as pd
 from openbb_core.app.command_runner import CommandRunner
@@ -93,3 +83,4 @@ def cot_mkt_concentration(cot_df: pd.DataFrame):
                                 'conc_net_le_8_tdr_short_all':'TOP_8_SHORT_CONCENTRATION'},
                                 inplace=True)
     return cot_df_copy
+
