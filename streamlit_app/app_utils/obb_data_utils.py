@@ -1,24 +1,18 @@
 """Volatility app utilities."""
-from app_utils import app_data
+from app_utils.app_data_codes import cot_contract_dict
 import pandas as pd
-from openbb_core.app.command_runner import CommandRunner
-
-_command_runner = CommandRunner()
+from app_utils.obb_functions import run_query
 
 # COT contract inputs
-cot_contract_dict = app_data.cot_contract_dict()
-cot_contract_selection_list = list(cot_contract_dict.keys())
+cot_contracts = cot_contract_dict()
+cot_contract_selection_list = list(cot_contracts.keys())
 
 def import_cot_data(contract_name: str, start_date: str = '2010-01-01', end_date: str = '2025-12-31', all_columns: bool = False):
     """Committment of Traders report data between two dates."""
-    contract_code = cot_contract_dict[contract_name]
-    cot_raw = _command_runner.sync_run(
-        '/regulators/cftc/cot',
-        provider_choices={'provider': 'cftc'},
-        standard_params={'id': contract_code, 'start_date': start_date, 'end_date': end_date},
-        extra_params={},
-    )
-    cot_df = cot_raw.to_df()
+    contract_code = cot_contracts[contract_name]
+
+    cot_df = run_query(path='/regulators/cftc/cot', provider='cftc', standard_params={'id': contract_code, 'start_date': start_date, 'end_date': end_date})
+
     cot_df.index = pd.to_datetime(cot_df.index)
     if all_columns:
         return cot_df

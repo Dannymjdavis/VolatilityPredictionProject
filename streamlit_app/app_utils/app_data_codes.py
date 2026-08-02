@@ -1,4 +1,4 @@
-"""Volatility app data utils."""
+"""Volatility app data codes."""
 
 def cot_contract_dict():
     return {'S&P 500 ANNUAL DIVIDEND INDEX': '43874A',

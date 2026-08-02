@@ -1,6 +1,6 @@
 import streamlit as st
-from app_utils import app_utils
 from app_utils.data_description import description_dict
+from app_utils import obb_data_utils
 import pandas as pd
 import plotly.express as px
 
@@ -15,7 +15,7 @@ def fetch_cot_data():
     """Callback for the GET DATA button - stores the result in session_state."""
     with data_sidebar.spinner(f"Loading {st.session_state['data_sidebar_selection']}...",
                          show_time=True):
-        st.session_state['cot_df_original'] = app_utils.import_cot_data(
+        st.session_state['cot_df_original'] = obb_data_utils.import_cot_data(
             contract_name=st.session_state['contract_selection'],
             start_date=str(st.session_state['cot_start_date']),
             end_date=str(st.session_state['cot_end_date']),
@@ -39,7 +39,7 @@ data_sidebar.selectbox(options=['COT Report'],
 if st.session_state['data_sidebar_selection'] == 'COT Report':
     data_sidebar.header('COT REPORT INPUTS')
     data_sidebar.selectbox('CONTRACT',
-                 options=app_utils.cot_contract_selection_list,
+                 options=obb_data_utils.cot_contract_selection_list,
                  placeholder='SELECT CONTRACT',
                  index=20,
                  key='contract_selection')
@@ -113,11 +113,11 @@ if st.session_state['current_state'] == 'cot_data':
     if st.session_state['cot_data_type'] == 'Raw Data':
         st.session_state['cot_df_updated_type'] = st.session_state['cot_df'].copy()
     elif st.session_state['cot_data_type'] == 'Investor-Type Breakdown':
-        st.session_state['cot_df_updated_type'] = app_utils.cot_oi_proportions_by_type(st.session_state['cot_df'])
+        st.session_state['cot_df_updated_type'] = obb_data_utils.cot_oi_proportions_by_type(st.session_state['cot_df'])
     elif st.session_state['cot_data_type'] == 'Long/Short Breakdown':
-        st.session_state['cot_df_updated_type'] = app_utils.cot_long_short_proportions(st.session_state['cot_df'])
+        st.session_state['cot_df_updated_type'] = obb_data_utils.cot_long_short_proportions(st.session_state['cot_df'])
     elif st.session_state['cot_data_type'] == 'Market Concentration':
-        st.session_state['cot_df_updated_type'] = app_utils.cot_mkt_concentration(st.session_state['cot_df'])
+        st.session_state['cot_df_updated_type'] = obb_data_utils.cot_mkt_concentration(st.session_state['cot_df'])
 
 # VISUAL TYPE - FOR COT DATA
 if st.session_state['current_state'] == 'cot_data':
