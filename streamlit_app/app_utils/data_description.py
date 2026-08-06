@@ -8,8 +8,8 @@ description_dict = {
         "frequency":"Every Friday (3-Day Lag)"
     },
     "futures_curve":{
-        "description":"Futures prices for the same underlying asset across different expiration dates. Shows what the market currently expects/prices in for near-term vs. far-term delivery",
+        "description":"Futures prices for VIX constracts across different expiration dates. Shows what the market currently expects/prices in for near-term vs. far-term delivery",
         "provider":"Cboe Futures Exchange",
-        "frequency":"Daily (End of Day)"
+        "frequency":"Daily"
     }
 }

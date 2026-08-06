@@ -3,6 +3,8 @@ from app_utils.data_description import description_dict
 from app_utils import obb_data_utils
 import pandas as pd
 import plotly.express as px
+import datetime as dt
+from pandas.tseries.offsets import BDay
 
 st.title('VOLATILITY DATA')
 
@@ -10,7 +12,10 @@ st.title('VOLATILITY DATA')
 if 'current_state' not in st.session_state:
     st.session_state['current_state'] = 'empty'
 
-# FETCH DATA FUNCTIONS
+##########################
+## FETCH DATA FUNCTIONS ##
+##########################
+
 def fetch_cot_data():
     """Callback for the GET DATA button - stores the result in session_state."""
     with data_sidebar.spinner(f"Loading {st.session_state['data_sidebar_selection']}...",
@@ -23,16 +28,42 @@ def fetch_cot_data():
         st.session_state['cot_df'] = st.session_state['cot_df_original'].copy()
         st.session_state['current_state'] = 'cot_data'
 
-# FILTER DATES FUNCTION
+def fetch_futures_curve():
+    """Callback to import and store futures curve data in session state."""
+    futures_codes = obb_data_utils.futures_curve_contracts
+    with data_sidebar.spinner(f"Loading {st.session_state['data_sidebar_selection']}...",
+                             show_time=True):
+        st.session_state['futures_curve_df'] = obb_data_utils.import_futures_curve_data(
+            date=st.session_state['futures_curve_date'],
+            type=futures_codes[st.session_state['futures_curve_type']]
+        )
+        st.session_state['current_state'] = 'futures_curve'
+
+##########################
+## UPDATE DATA FUNCTION ##
+##########################
+
 def filter_dates(df: pd.DataFrame):
     """Callback for the date slider - filters and stores the result in session_state."""
     min_value, max_value = st.session_state['cot_date_slider']
     st.session_state['cot_df'] = df.loc[min_value : max_value]
 
-# SIDEBAR
+def update_futures_curve_date():
+    """Update futures curve data date."""
+    futures_codes = obb_data_utils.futures_curve_contracts
+    st.session_state['futures_curve_date'] = st.session_state['futures_curve_update_date']
+    st.session_state['futures_curve_df'] = obb_data_utils.import_futures_curve_data(
+                date=st.session_state['futures_curve_date'],
+                type=futures_codes[st.session_state['futures_curve_type']]
+            )
+
+#############
+## SIDEBAR ##
+#############
+
 data_sidebar = st.sidebar
 data_sidebar.title('SELECT DATA')
-data_sidebar.selectbox(options=['COT Report'],
+data_sidebar.selectbox(options=['COT Report', 'Futures Curve'],
                        label='Select Data',
                        key='data_sidebar_selection')
 
@@ -56,7 +87,27 @@ if st.session_state['data_sidebar_selection'] == 'COT Report':
                         on_click=fetch_cot_data,
                         icon="📊")
 
-# TITLE CONTAINER
+if st.session_state['data_sidebar_selection'] == 'Futures Curve':
+    data_sidebar.header('FUTURES CURVE INPUTS')
+    data_sidebar.selectbox('CONTRACT TIMING',
+                 options=obb_data_utils.futures_curve_selection_list,
+                 placeholder='SELECT CONTRACT TYPE',
+                 index=0,
+                 key='futures_curve_type')
+    data_sidebar.date_input('CONTRACT DATE',
+                           value=(dt.datetime.today() - BDay(1)),
+                           min_value='2010-01-01',
+                           max_value=(dt.datetime.today() - BDay(1)),
+                           key='futures_curve_date')
+    data_sidebar.button(label='GET DATA',
+                        key='futures_curve_button',
+                        on_click=fetch_futures_curve,
+                        icon="📊")
+
+#####################
+## TITLE CONTAINER ##
+#####################
+
 with st.container(border=True, width='stretch', height='content'):
     st.subheader("EXOGENOUS VARIABLE EXPLORATION" if st.session_state['current_state']=='empty' else f"{st.session_state['data_sidebar_selection']}".upper())
     st.write("Select Data to Begin" if st.session_state['current_state']=='empty' else description_dict[st.session_state['current_state']]['description'])
@@ -66,15 +117,29 @@ with st.container(border=True, width='stretch', height='content'):
         column_badge_1.badge(f"{description_dict[st.session_state['current_state']]['provider']}", icon="📋", color='primary')
         column_badge_2.badge(f"{description_dict[st.session_state['current_state']]['frequency']}", icon="⏱️", color='primary')
 
-# SELECTION CONTAINER
-selection_container = st.columns(1 if st.session_state['current_state'] == 'empty' else 3,
-                                 border=True,
+#########################
+## SELECTION CONTAINER ##
+#########################
+
+def column_container_number(session_state: str):
+    """Return int which updates depending on session state."""
+    if session_state == 'empty':
+        n_cols = 1
+    elif session_state == 'futures_curve':
+        n_cols = 2
+    else:
+        n_cols = 3
+    return n_cols
+
+selection_container = st.columns(column_container_number(st.session_state['current_state']),
+                                 border=True if st.session_state['current_state'] != 'futures_curve' else False,
                                  width='stretch',
                                  vertical_alignment='top',
                                  gap='medium')
 
 if st.session_state['current_state'] == 'empty':
     selection_container[0].write('👈 USE SIDEBAR TO COLLECT DATA')
+
 elif st.session_state['current_state'] == 'cot_data':
     # COT DATA SELECTION
     selection_container[0].selectbox('DISPLAY DATA', options=[
@@ -100,7 +165,29 @@ elif st.session_state['current_state'] == 'cot_data':
                                   on_change=filter_dates,
                                   args=[st.session_state['cot_df_original']])
 
-# DATA CONTAINER
+elif st.session_state['current_state'] == 'futures_curve':
+    # FUTURES CURVE CHART VIEW
+    selection_container[0].selectbox('**CHANGE CHART TYPE**',
+                                     options=[
+                                         'Table',
+                                         'Line Chart',
+                                         ],
+                                         index=0,
+                                         key='futures_curve_chart_type',
+                                         )
+    # FUTURES CURVE DATE FILTER
+    selection_container[1].date_input('**UPDATE DATE**',
+                                      key='futures_curve_update_date',
+                                      min_value=pd.Timestamp('2010-01-01'),
+                                      max_value=(dt.datetime.today() - BDay(1)),
+                                      value=st.session_state['futures_curve_date'],
+                                      on_change=update_futures_curve_date)
+
+
+####################
+## DATA CONTAINER ##
+####################
+
 data_container = st.container(border=False if st.session_state['current_state'] is None else True, 
                               key='data_container',
                             width='stretch',
@@ -108,7 +195,7 @@ data_container = st.container(border=False if st.session_state['current_state'] 
                             horizontal_alignment='center',
                             vertical_alignment='center')
 
-# DATA TYPE - FOR COT DATA
+# DATA TYPE: COT DATA
 if st.session_state['current_state'] == 'cot_data':
     if st.session_state['cot_data_type'] == 'Raw Data':
         st.session_state['cot_df_updated_type'] = st.session_state['cot_df'].copy()
@@ -119,7 +206,7 @@ if st.session_state['current_state'] == 'cot_data':
     elif st.session_state['cot_data_type'] == 'Market Concentration':
         st.session_state['cot_df_updated_type'] = obb_data_utils.cot_mkt_concentration(st.session_state['cot_df'])
 
-# VISUAL TYPE - FOR COT DATA
+# VISUAL TYPE: COT DATA
 if st.session_state['current_state'] == 'cot_data':
     if st.session_state['cot_chart_type'] == 'Table':
         data_container.dataframe(st.session_state['cot_df_updated_type'])
@@ -129,3 +216,7 @@ if st.session_state['current_state'] == 'cot_data':
         data_container.plotly_chart(fig, use_container_width=True)
     elif st.session_state['cot_chart_type'] == 'Stacked Bar Chart':
         data_container.bar_chart(st.session_state['cot_df_updated_type'])
+
+# DATA TYPE: FUTURES CURVE DATA
+if st.session_state['current_state'] == 'futures_curve':
+    data_container.table(st.session_state['futures_curve_df'])

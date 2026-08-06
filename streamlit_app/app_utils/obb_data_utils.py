@@ -1,9 +1,14 @@
 """Volatility app utilities."""
-from app_utils.app_data_codes import cot_contract_dict
+from app_utils.app_data_codes import cot_contract_dict, futures_curve_types
+from typing import Literal
 import pandas as pd
+import numpy as np
 from app_utils.obb_functions import run_query
 
-# COT contract inputs
+#####################
+### COT CONTRACTS ###
+#####################
+
 cot_contracts = cot_contract_dict()
 cot_contract_selection_list = list(cot_contracts.keys())
 
@@ -78,3 +83,25 @@ def cot_mkt_concentration(cot_df: pd.DataFrame):
                                 inplace=True)
     return cot_df_copy
 
+#####################
+### FUTURES CURVE ###
+#####################
+
+futures_curve_contracts = futures_curve_types()
+futures_curve_selection_list = list(futures_curve_contracts.keys())
+
+def import_futures_curve_data(date:str, type: str|Literal['VX_EOD', 'VX_AM']):
+    """Import futures curve across expiry dates at date t."""
+    futures_curve_t = run_query(path='/derivatives/futures/curve',
+                    provider='cboe',
+                    standard_params={'symbol':type,
+                                        'date':date})
+    
+    futures_curve_t.index = pd.to_datetime(futures_curve_t.index)
+    futures_curve_t['expiration'] = pd.to_datetime(futures_curve_t['expiration'])
+    futures_curve_t['dte'] = (futures_curve_t['expiration'] - futures_curve_t.index).dt.days
+    return futures_curve_t
+
+def futures_curve_slope(futures_curve_df: pd.DataFrame) -> float:
+    """Compute the slope of the futures curve on a given day using linear regression."""
+    return np.polyfit(x=futures_curve_df['dte'], y=futures_curve_df['price'], deg=1)[0].item()

@@ -27,3 +27,7 @@ def cot_contract_dict():
             'MICRO E-MINI S&P 500 INDEX': '13874U',
             'E-MINI S&P UTILITIES INDEX': '13874J',
             'E-MINI S&P REAL ESTATE INDEX': '13874R'}
+
+def futures_curve_types():
+    return {"4PM Eastern Time Levels":'VX_EOD',
+            "Mid-Morning TWAP Levels":'VX_AM'}
