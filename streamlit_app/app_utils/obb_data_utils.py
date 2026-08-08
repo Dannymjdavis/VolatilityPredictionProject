@@ -3,6 +3,7 @@ from app_utils.app_data_codes import cot_contract_dict, futures_curve_types
 from typing import Literal
 import pandas as pd
 import numpy as np
+from pandas.tseries.offsets import BusinessDay, BusinessMonthEnd
 from app_utils.obb_functions import run_query
 
 #####################
@@ -105,3 +106,38 @@ def import_futures_curve_data(date:str, type: str|Literal['VX_EOD', 'VX_AM']):
 def futures_curve_slope(futures_curve_df: pd.DataFrame) -> float:
     """Compute the slope of the futures curve on a given day using linear regression."""
     return np.polyfit(x=futures_curve_df['dte'], y=futures_curve_df['price'], deg=1)[0].item()
+
+def futures_curve_slope_prior_bd(date_t: str, type: str|Literal['VX_EOD', 'VX_AM']) -> tuple[float, str]:
+    """Futures curve at prior business day."""
+
+    date_t_sub_1 = pd.to_datetime(date_t) - BusinessDay(1)
+    date_t_sub_1_str = date_t_sub_1.strftime("%Y-%m-%d")
+
+    futures_curve_t_sub_1 = import_futures_curve_data(date_t_sub_1_str, type)
+
+    slope_t_sub_1 = futures_curve_slope(futures_curve_t_sub_1)
+
+    return round(slope_t_sub_1,4), date_t_sub_1_str
+
+def futures_curve_slope_prior_month(date_t: str, type: str|Literal['VX_EOD', 'VX_AM']) -> tuple[float, str]:
+    """Futures curve at prior business day."""
+
+    date_t_sub_1m = pd.to_datetime(date_t) - BusinessMonthEnd(1)
+    date_t_sub_1m_str = date_t_sub_1m.strftime("%Y-%m-%d")
+
+    futures_curve_t_sub_1m = import_futures_curve_data(date_t_sub_1m_str, type)
+
+    slope_t_sub_1m = futures_curve_slope(futures_curve_t_sub_1m)
+
+    return round(slope_t_sub_1m,4), date_t_sub_1m_str
+
+def futures_curve_classification(slope: float) -> str:
+    """Classify curve based on linear slope."""
+    if slope > 0.5:
+        classification = 'Contango'
+    elif slope < -0.5:
+        classification = 'Backwardation'
+    else:
+        classification = 'Flat'
+    return classification
+

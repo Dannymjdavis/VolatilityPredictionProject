@@ -138,18 +138,18 @@ selection_container = st.columns(column_container_number(st.session_state['curre
                                  gap='medium')
 
 if st.session_state['current_state'] == 'empty':
-    selection_container[0].write('👈 USE SIDEBAR TO COLLECT DATA')
+    selection_container[0].write('👈 **USE SIDEBAR TO COLLECT DATA**')
 
 elif st.session_state['current_state'] == 'cot_data':
     # COT DATA SELECTION
-    selection_container[0].selectbox('DISPLAY DATA', options=[
+    selection_container[0].selectbox('**DISPLAY DATA**', options=[
             'Raw Data',
             'Investor-Type Breakdown',
             'Long/Short Breakdown',
             'Market Concentration'
         ], index=0, key='cot_data_type')
     # COT CHART VIEW
-    selection_container[1].selectbox('CHART TYPE', options=[
+    selection_container[1].selectbox('**CHART TYPE**', options=[
             'Table',
             'Line Chart',
             'Stacked Bar Chart'
@@ -157,7 +157,7 @@ elif st.session_state['current_state'] == 'cot_data':
     # COT DATE FILTER
     cot_date_min = st.session_state['cot_df_original'].index.min().to_pydatetime()
     cot_date_max = st.session_state['cot_df_original'].index.max().to_pydatetime()
-    selection_container[2].slider('DATE SLIDER',
+    selection_container[2].slider('**DATE SLIDER**',
                                   key='cot_date_slider',
                                   min_value=cot_date_min,
                                   max_value=cot_date_max,
@@ -182,6 +182,27 @@ elif st.session_state['current_state'] == 'futures_curve':
                                       max_value=(dt.datetime.today() - BDay(1)),
                                       value=st.session_state['futures_curve_date'],
                                       on_change=update_futures_curve_date)
+
+###################
+## SUMMARY CARDS ##
+###################
+
+if st.session_state['current_state'] == 'futures_curve':
+    futures_codes = obb_data_utils.futures_curve_contracts
+    summary_cards = st.columns(3)
+
+    curve_prior_month, date_prior_month = obb_data_utils.futures_curve_slope_prior_month(date_t=st.session_state['futures_curve_date'],
+                                                                type=futures_codes[st.session_state['futures_curve_type']])
+    summary_cards[2].metric(label='PRIOR MONTH SLOPE', value=curve_prior_month, format='percent')
+    summary_cards[2].write(date_prior_month)
+
+    curve_tm1, date_tm1 = obb_data_utils.futures_curve_slope_prior_bd(date_t=st.session_state['futures_curve_date'],
+                                                            type=futures_codes[st.session_state['futures_curve_type']])
+    summary_cards[1].metric(label='PRIOR DAY SLOPE', value=curve_tm1, format='percent')
+    summary_cards[1].write(date_tm1)
+
+    slope_t = obb_data_utils.futures_curve_slope(st.session_state['futures_curve_df'])
+    summary_cards[0].metric(label="SLOPE", value=round(slope_t, 4), delta=round((slope_t - curve_tm1), 4), format='percent')
 
 
 ####################
@@ -219,4 +240,15 @@ if st.session_state['current_state'] == 'cot_data':
 
 # DATA TYPE: FUTURES CURVE DATA
 if st.session_state['current_state'] == 'futures_curve':
-    data_container.table(st.session_state['futures_curve_df'])
+    if st.session_state['futures_curve_chart_type'] == 'Table':
+        data_container.dataframe(st.session_state['futures_curve_df'])
+    elif st.session_state['futures_curve_chart_type'] == 'Line Chart':
+        data_container.plotly_chart(
+            px.line(
+                st.session_state['futures_curve_df'],
+                x='dte',
+                y='price',
+                title=f"FUTURES CURVE | {st.session_state['futures_curve_date']}",
+                labels={'price':'', 'dte':'Days to Expiry'}
+                )
+            )
