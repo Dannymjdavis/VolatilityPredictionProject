@@ -1,6 +1,40 @@
+import importlib.util
+import os
+import stat
+from pathlib import Path
+
 import pandas as pd
-from openbb import obb
-from openbb_core.app.command_runner import CommandRunner
+
+
+def _ensure_openbb_package_writable() -> None:
+    """Make the installed openbb/ package tree writable before import.
+
+    Streamlit Cloud installs dependencies with `uv`, which links wheel files
+    into site-packages as read-only hardlinks. openbb's __init__.py rebuilds
+    its extension package on import (writing .build.lock, assets/, package/)
+    whenever installed extensions differ from its shipped reference.json —
+    which is always true on a fresh cloud deploy pulling in many openbb-*
+    extensions. That write fails with PermissionError on read-only hardlinks.
+    Restoring the owner write bit before import fixes it; this is a no-op
+    (and harmless) wherever files are already writable, e.g. local dev.
+    """
+    spec = importlib.util.find_spec("openbb")
+    if not spec or not spec.submodule_search_locations:
+        return
+    openbb_dir = Path(list(spec.submodule_search_locations)[0])
+    for root, dirs, files in os.walk(openbb_dir):
+        for name in dirs + files:
+            path = Path(root) / name
+            try:
+                path.chmod(path.stat().st_mode | stat.S_IWUSR)
+            except OSError:
+                pass
+
+
+_ensure_openbb_package_writable()
+
+from openbb import obb  # noqa: E402
+from openbb_core.app.command_runner import CommandRunner  # noqa: E402
 
 # COMMAND RUNNER
 _command_runner = CommandRunner()
