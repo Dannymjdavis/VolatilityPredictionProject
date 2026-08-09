@@ -105,7 +105,7 @@ def import_futures_curve_data(date:str, type: str|Literal['VX_EOD', 'VX_AM']):
 
 def futures_curve_slope(futures_curve_df: pd.DataFrame) -> float:
     """Compute the slope of the futures curve on a given day using linear regression."""
-    return np.polyfit(x=futures_curve_df['dte'], y=futures_curve_df['price'], deg=1)[0].item()
+    return np.polyfit(x=futures_curve_df['dte'], y=np.log(futures_curve_df['price']), deg=1)[0].item()
 
 def futures_curve_slope_prior_bd(date_t: str, type: str|Literal['VX_EOD', 'VX_AM']) -> tuple[float, str]:
     """Futures curve at prior business day."""
@@ -133,9 +133,9 @@ def futures_curve_slope_prior_month(date_t: str, type: str|Literal['VX_EOD', 'VX
 
 def futures_curve_classification(slope: float) -> str:
     """Classify curve based on linear slope."""
-    if slope > 0.5:
+    if slope > 0.01:
         classification = 'Contango'
-    elif slope < -0.5:
+    elif slope < -0.01:
         classification = 'Backwardation'
     else:
         classification = 'Flat'

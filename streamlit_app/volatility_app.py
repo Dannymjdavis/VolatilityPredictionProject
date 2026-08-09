@@ -62,7 +62,7 @@ def update_futures_curve_date():
 #############
 
 data_sidebar = st.sidebar
-data_sidebar.title('SELECT DATA')
+data_sidebar.title('DATA SELECTION PANE')
 data_sidebar.selectbox(options=['COT Report', 'Futures Curve'],
                        label='Select Data',
                        key='data_sidebar_selection')
@@ -89,7 +89,7 @@ if st.session_state['data_sidebar_selection'] == 'COT Report':
 
 if st.session_state['data_sidebar_selection'] == 'Futures Curve':
     data_sidebar.header('FUTURES CURVE INPUTS')
-    data_sidebar.selectbox('CONTRACT TIMING',
+    data_sidebar.selectbox('CONTRACT TYPE',
                  options=obb_data_utils.futures_curve_selection_list,
                  placeholder='SELECT CONTRACT TYPE',
                  index=0,
