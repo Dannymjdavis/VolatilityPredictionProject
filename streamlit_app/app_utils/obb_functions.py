@@ -22,6 +22,10 @@ def _ensure_openbb_package_writable() -> None:
     if not spec or not spec.submodule_search_locations:
         return
     openbb_dir = Path(list(spec.submodule_search_locations)[0])
+    try:
+        openbb_dir.chmod(openbb_dir.stat().st_mode | stat.S_IWUSR)
+    except OSError:
+        pass
     for root, dirs, files in os.walk(openbb_dir):
         for name in dirs + files:
             path = Path(root) / name
